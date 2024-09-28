@@ -20,6 +20,7 @@ typedef struct Garbage {
 typedef struct GarbageCollector {
     Garbage             **Bins;
     long                idx;
+    int                 debug;
 
     // Pointing to static Functions (Lib Functions)
     int                 (*CreateBin)            (struct GarbageCollector *gc);

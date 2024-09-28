@@ -7,7 +7,7 @@
 GarbageCollector *gc = NULL;
 
 int main() { 
-    gc = start_gc();
+    gc = start_gc(1);
     int bin_id = gc->CreateBin(gc);
 
     char *foo = strdup("foo");

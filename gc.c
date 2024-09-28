@@ -5,11 +5,12 @@
 
 #include "gc.h"
 
-GarbageCollector *start_gc() {
+GarbageCollector *start_gc(int d) {
     GarbageCollector *gc = (GarbageCollector *)malloc(sizeof(GarbageCollector));
 
     *gc = (GarbageCollector){
         .Bins               = (Garbage **)malloc(sizeof(Garbage *) * 1),
+        .debug              = d,
 
         .CreateBin          = start_new_bin,
         .AddToBin           = add_ptr_to_bin,
@@ -114,23 +115,26 @@ static void DestroyGCBin(GarbageCollector *gc, int BID) {
     for(int i = 0; i < gc->idx; i++) {
         if(!gc->Bins[i]) {
             // Indication of an issue not reaching the last of the array ( Shouldn't get this if everything goes right )
-            if(i != (gc->idx - 1))
+            if(i != (gc->idx - 1) && gc->debug)
                 printf("[ x ] Error, Something is wrong....!\n");
             break;
         }
 
+        if(gc->Bins[i]->BinID != BID)
+            continue;
+
         for(int obj_idx = 0; obj_idx < gc->Bins[i]->idx; obj_idx++) {
             if(!gc->Bins[i]->Objects[obj_idx]->Object) {
-                if(gc->Bins[i]->idx != (gc->Bins[i]->idx - 1))
+                if(gc->Bins[i]->idx != (gc->Bins[i]->idx - 1) && gc->debug)
                     printf("[ x ] Error, Something is wrong....!\n");
                 break;
             }
             free(gc->Bins[i]->Objects[obj_idx]->Object);
             gc->Bins[i]->Objects[obj_idx]->Object = NULL;
-            printf("[ + ] Destroyed Obj In Bin: %d @ Pos: %d\n", gc->Bins[i]->BinID, obj_idx);
+            (void)(gc->debug ? printf("[ + ] Destroyed Obj In Bin: %d @ Pos: %d\n", gc->Bins[i]->BinID, obj_idx) : 0);
         }
 
-        printf("[ + ] Destroying Bin: %d\n", gc->Bins[i]->BinID);
+        (void)(gc->debug ? printf("[ + ] Destroying Bin: %d\n", gc->Bins[i]->BinID) : 0);
         free(gc->Bins[i]->Objects);
         gc->Bins[i]->Objects = NULL; // remove the dangling pointing address
         free(gc->Bins[i]);
